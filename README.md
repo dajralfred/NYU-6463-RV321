@@ -2,6 +2,6 @@
 Implementation of a subset of the open source RISCV architecture on an FPGA to create a functional CPU
 
 # Group Members
-  *Dajr Alfred:        dva240
-  *Artem Shlepchenko:  as14836
-  *Shubham Shandilya:  ss15590
+  <br>Dajr Alfred:        dva240
+  <br>Artem Shlepchenko:  as14836
+  <br>Shubham Shandilya:  ss15590
