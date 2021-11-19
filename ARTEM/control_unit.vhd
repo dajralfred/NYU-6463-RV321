@@ -77,7 +77,8 @@ use work.opcodes.all;
 
 entity control_unit is
     Port (
-        
+        clk: in std_logic;
+        clr: in std_logic;
         instr: in std_logic_vector(31 downto 0);
         current_pc: in std_logic_vector(31 downto 0); --PC content for AUIPC
         rs1: out std_logic_vector(4 downto 0); 
@@ -90,7 +91,8 @@ entity control_unit is
         en_IMM: out std_logic;
         offset: out std_logic_vector(31 downto 0);
         pc_set: out std_logic_vector(1 downto 0);
-        zero_flag: in boolean
+        zero_flag: in boolean;
+        enable: in std_logic
         
         );
 end control_unit;
@@ -101,13 +103,16 @@ architecture Behavioral of control_unit is
     signal funct7: std_logic_vector(6 downto 0);
     signal funct3: std_logic_vector(2 downto 0);
     
+    type StateType is (ST_INIT, ST_DECODE, ST_READY);
+    signal state: StateType;
+    
 begin
     
     opc <= instr(6 downto 0);
     funct3 <= instr(14 downto 12);
     funct7 <= instr(31 downto 25);
     
-    process(opc, funct7, funct3, zero_flag, current_pc) 
+    process(clk, opc, funct7, funct3, zero_flag, current_pc) 
     
         variable auipc_offset: std_logic_vector(31 downto 0);
     
@@ -168,17 +173,8 @@ begin
                 
                 alu_out <= ALU_ADD;
                 
-                if(instr(31) = '1') then 
-                    --2's complement representation
-                    imm(31 downto 12) <= (others => '0');
-                    imm(11 downto 0) <= std_logic_vector(unsigned((not (instr(31 downto 20))) + 1));
-                else
-                    imm(31 downto 12) <= (others => '0');
-                    imm(11 downto 0) <= instr(31 downto 20);
-                end if;
-                
-                --imm(31 downto 12) <= (others => '0');
-                --imm(11 downto 0) <= instr(31 downto 20);
+                imm(31 downto 12) <= (others => '0');
+                imm(11 downto 0) <= instr(31 downto 20);
                 
 ----------------------------------------------------------------------------------                
             when I_TYPE_JALR =>
@@ -189,17 +185,8 @@ begin
                 
                 alu_out <= ALU_ADD;
                 
-                if(instr(31) = '1') then 
-                    --2's complement representation
-                    imm(31 downto 12) <= (others => '0');
-                    imm(11 downto 0) <= std_logic_vector(unsigned((not (instr(31 downto 20))) + 1));
-                else
-                    imm(31 downto 12) <= (others => '0');
-                    imm(11 downto 0) <= instr(31 downto 20);
-                end if;
-                
-                --imm(31 downto 12) <= (others => '0');
-                --imm(11 downto 0) <= instr(31 downto 20);
+                imm(31 downto 12) <= (others => '0');
+                imm(11 downto 0) <= instr(31 downto 20);
 
                 pc_set <= "10";
                 
@@ -244,17 +231,8 @@ begin
                         imm(31 downto 5) <= (others => '0');
                         imm(4 downto 0) <= instr(24 downto 20);
                     when others =>
-                        if(instr(31) = '1') then 
-                            --2's complement representation
-                            imm(31 downto 12) <= (others => '0');
-                            imm(11 downto 0) <= std_logic_vector(unsigned((not (instr(31 downto 20))) + 1));
-                        else
-                            imm(31 downto 12) <= (others => '0');
-                            imm(11 downto 0) <= instr(31 downto 20);
-                        end if;
-                        
-                        --imm(31 downto 12) <= (others => '0');
-                        --imm(11 downto 0) <= instr(31 downto 20);
+                        imm(31 downto 12) <= (others => '0');
+                        imm(11 downto 0) <= instr(31 downto 20);
                 
                 end case;
                 
@@ -279,8 +257,7 @@ begin
                 en_IMM <= '1';
                 rd <= "00001"; --when branch
                 
-                offset(31 downto 13) <= (others => '0');
-                offset(12) <= instr(31);
+                offset(31 downto 12) <= (others => '0');
                 offset(11) <= instr(7);
                 offset(10 downto 5) <= instr(30 downto 25);
                 offset(4 downto 1) <= instr(11 downto 8);
@@ -302,7 +279,7 @@ begin
                             when false =>
                                 pc_set <= "01";
                             when others =>
-                             offset <= (others => '0');
+                                offset <= (others => '0');
                         end case;
                     
                     when "100" => --Branch Less Than
@@ -311,7 +288,7 @@ begin
                             when true =>
                                 pc_set <= "01";
                             when others =>
-                             offset <= (others => '0');
+                                offset <= (others => '0');
                         end case;
                     
                     when "101" => --Branch Greater Than or Equal
@@ -320,7 +297,7 @@ begin
                             when false =>
                                 pc_set <= "01";
                             when others =>
-                             offset <= (others => '0');
+                                offset <= (others => '0');
                         end case;
                     
                     when "110" => --Branch Less Than Unsigned
@@ -329,7 +306,7 @@ begin
                             when true =>
                                 pc_set <= "01";
                             when others =>
-                             offset <= (others => '0');
+                                offset <= (others => '0');
                         end case;
                     
                     when "111" => --Branch Greater Than or Equal Unsigned
@@ -338,7 +315,7 @@ begin
                             when false =>
                                 pc_set <= "01";
                             when others =>
-                             offset <= (others => '0');
+                                offset <= (others => '0');
                         end case;
                         
                     when others => offset <= (others => '0');
@@ -354,7 +331,7 @@ begin
                 alu_out <= ALU_ADD;
                 
                 imm(31 downto 12) <= instr(31 downto 12);
-                imm(11 downto 0) <= instr(11 downto 0);
+                imm(11 downto 0) <= (others => '0');
                 
 ----------------------------------------------------------------------------------            
             when U_TYPE_AUIPC =>
@@ -386,7 +363,22 @@ begin
             when others => null;
             
         end case;
-                
+
+    end process;
+    
+    --state machine
+    process(clr, clk) begin
+        if(clr = '0') then
+            state <= ST_INIT;
+        elsif(clk'EVENT and clk = '1') then
+            case state is
+                when ST_INIT =>
+                    if(enable = '1') then state <= ST_DECODE;
+                    end if;
+                when ST_DECODE => state <= ST_READY;
+                when ST_READY => state <= ST_INIT;
+            end case;
+        end if;
     end process;
 
 end Behavioral;
