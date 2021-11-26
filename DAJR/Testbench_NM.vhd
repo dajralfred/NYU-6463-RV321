@@ -43,7 +43,7 @@ architecture nm_ach of Testbench_NM is
 
 signal t_clk : STD_LOGIC := '0';
 signal t_rst : STD_LOGIC := '1'; --asynchronous, active LOW
-signal t_read_num: STD_LOGIC := '1';
+signal t_read_enable: STD_LOGIC_VECTOR(2 downto 0) := "000";
 signal t_addr_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := NNUM_START_ADDR;
 signal t_data_out: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
 
@@ -53,7 +53,7 @@ dut: entity work.Nnum_Memory
     Port Map( 
     clk => t_clk,
     rst => t_rst, --asynchronous, active LOW
-    read_num => t_read_num,
+    read_enable => t_read_enable,
     addr_in => t_addr_in,
     data_out => t_data_out
   );
@@ -76,10 +76,10 @@ begin
     readline(file_pointer,l);
     hread(l,file_data);
     
-    t_read_num <= '1';
+    t_read_enable <= "111";
     wait for 10 ns;
     assert(t_data_out=file_data) report "The instruction output did not match the expected output!" severity FAILURE;
-    t_read_num <= '0';
+    t_read_enable <= "000";
     wait for 40 ns;
     
     t_rst <= '0';
@@ -92,11 +92,11 @@ begin
         hread(l,file_data);
 
         
-        t_read_num <= '1';
+        t_read_enable <= "111";
         t_addr_in <= t_addr_in + LENGTH_ADDR_BYTES;
         wait for 10 ns;
         assert(t_data_out=file_data) report "The instruction output did not match the expected output!" severity FAILURE;
-        t_read_num <= '0';
+        t_read_enable <= "000";
         wait for 40 ns;
         
     end loop;

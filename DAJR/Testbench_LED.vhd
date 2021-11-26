@@ -41,8 +41,8 @@ architecture led_ach of Testbench_LED is
 
 signal t_clk : STD_LOGIC := '0';
 signal t_rst : STD_LOGIC := '1'; --asynchronous, active LOW
-signal t_write_enable: STD_LOGIC_VECTOR(1 downto 0) := "00"; --control signal used to enable write of data ram
-signal t_read_enable: STD_LOGIC_VECTOR(1 downto 0) := "00"; --control signal used to enable read of data ram
+signal t_write_enable: STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable write of data ram
+signal t_read_enable: STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable read of data ram
 signal t_addr_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := LED_START_ADDR;
 signal t_data_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
 signal t_data_out: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
@@ -72,37 +72,29 @@ MAIN_PROG: process begin
     wait for 10ns;
     
     -- enable word writing and write word
-    t_write_enable <= "11";
+    t_write_enable <= "111";
     t_data_in <= X"89abcdef";
     wait for 10ns;
     
      --verify word written at initial address
-    t_write_enable <= "00";
-    t_read_enable <= "11";
+    t_write_enable <= "000";
+    t_read_enable <= "111";
     wait for 10ns;
     assert(t_data_out = X"89abcdef") report "The output did not match the expected output!" severity FAILURE;
     
     
-    -- disable read, change data in to byte size
-    t_read_enable <= "00";
-    t_data_in <= X"00000011";
-    wait for 10ns;
+    -- disable read
+    t_read_enable <= "000";
     
-    --write byte at this address
-    t_write_enable <= "01";
-    t_data_in <= X"00000000";
-    wait for 10ns;
-    
-    --change address offset to 1 and write new data
-    t_data_in <= X"00000011";
-    t_addr_in <= t_addr_in + 1;
-    wait for 10ns;
-    
-    
+    --write half word at this address
+    t_write_enable <= "011";
+    t_data_in <= X"00001100";
+    wait for 10ns;    
     
     --change offset to 2 and write new data
+    t_write_enable <= "001";
     t_data_in <= X"00000022";
-    t_addr_in <= t_addr_in + 1;
+    t_addr_in <= t_addr_in + 2;
     wait for 10ns;
     
     --change offset to 3 and write new data
@@ -113,33 +105,28 @@ MAIN_PROG: process begin
     --******* READ MODE *******--
     --disable write and enable word read
     -- change address to aligned address, read word and assert correct output
-    t_write_enable <= "00";
+    t_write_enable <= "000";
     t_addr_in <= t_addr_in - 3;
-    t_read_enable <= "11";
+    t_read_enable <= "111";
     wait for 10ns;
     assert(t_data_out = X"33221100") report "The output did not match the expected output!" severity FAILURE;
     
-    --attempt word read at non-word aligned address and ensure output = 0
+    --attempt word read at non-word aligned address and ensure output = 332211
     t_addr_in <= t_addr_in + 1;
     wait for 10ns;
-    assert(t_data_out = X"00000000") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_data_out = X"00332211") report "The output did not match the expected output!" severity FAILURE;
     
-    --verify byte at address + offet 1
-    t_read_enable <= "01";
+    --verify byte at address + offset 1
+    t_read_enable <= "001";
     wait for 10ns;
     assert(t_data_out = X"00000011") report "The output did not match the expected output!" severity FAILURE;
     
-    --verify byte at address + offet 2
+    --verify half word at address + offet 2
     t_addr_in <= t_addr_in + 1;
+    t_read_enable <= "011";
     wait for 10ns;
-    assert(t_data_out = X"00000022") report "The output did not match the expected output!" severity FAILURE;
-    
-    --verify byte at address + offet 3
-    t_addr_in <= t_addr_in + 1;
-    wait for 10ns;
-    assert(t_data_out = X"00000033") report "The output did not match the expected output!" severity FAILURE;
-    
-    
+    assert(t_data_out = X"00003322") report "The output did not match the expected output!" severity FAILURE;
+        
     --reset and verify output = 0
     t_rst <= '0';
     wait for 10ns;
@@ -147,7 +134,7 @@ MAIN_PROG: process begin
     
     --disable reset and read and ensure that output does not change
     t_rst <= '1';
-    t_read_enable <= "00";
+    t_read_enable <= "000";
     wait for 10ns;
     assert(t_data_out = X"00000000") report "The output did not match the expected output!" severity FAILURE;
     
