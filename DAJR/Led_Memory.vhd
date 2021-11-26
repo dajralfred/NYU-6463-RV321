@@ -38,9 +38,9 @@ entity Led_Memory is
     clk : IN STD_LOGIC := '0';
     rst : IN STD_LOGIC := '1'; --asynchronous, active LOW
     --(word write enable bit, write enable bit) 
-    write_enable: IN STD_LOGIC_VECTOR(1 downto 0) := "00"; --control signal used to enable write of data ram
+    write_enable: IN STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable write of data ram
     --(word read enable bit, read enable bit) 
-    read_enable: IN STD_LOGIC_VECTOR(1 downto 0) := "00"; --control signal used to enable read of data ram
+    read_enable: IN STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable read of data ram
     addr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := LED_START_ADDR;
     data_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
     data_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0')
@@ -69,15 +69,29 @@ process(rst,clk) begin --read data
         data_out <= (others => '0');
     elsif rising_edge(clk) then
         if(addr_word = X"00000000") then --***This only works for 1 word of LEDs***---
-            if(read_enable = "01") then --read idividual byte 
+            if(read_enable = "001") then --read idividual byte 
                 case addr_mod is
                     when X"00000000" => data_out <= X"000000" & byte_0;
                     when X"00000001" => data_out <= X"000000" & byte_1;
                     when X"00000002" => data_out <= X"000000" & byte_2;
                     when X"00000003" => data_out <= X"000000" & byte_3;
                 end case;
-            elsif(read_enable = "11" and addr_mod = X"00000000") then --read word
-                data_out <= byte_3 & byte_2 & byte_1 & byte_0;
+            elsif(read_enable = "011") then --read half word
+                case addr_mod is
+                    when X"00000000" => data_out <= X"0000" & byte_1 & byte_0;
+                    when X"00000001" => data_out <= X"0000" & byte_2 & byte_1;
+                    when X"00000002" => data_out <= X"0000" & byte_3 & byte_2;
+                    when X"00000003" => data_out <= X"000000" & byte_3;
+                end case;
+                
+            elsif(read_enable = "111") then --read word
+                case addr_mod is
+                    when X"00000000" => data_out <= byte_3 & byte_2 & byte_1 & byte_0;
+                    when X"00000001" => data_out <= X"00" & byte_3 & byte_2 & byte_1;
+                    when X"00000002" => data_out <= X"0000" & byte_3 & byte_2;
+                    when X"00000003" => data_out <= X"000000" & byte_3;
+                end case;
+                
             else
                 data_out <= (others => '0');
             end if;
@@ -85,57 +99,106 @@ process(rst,clk) begin --read data
     end if;
 end process;
 
+
 process(clk) begin --write byte 0
     if rising_edge(clk) then
         if(addr_word = X"00000000") then --***This only works for 1 word of LEDs***---
-            if(write_enable = "01") then --write idividual byte
+            if(write_enable = "001") then --write idividual byte
                 if(addr_mod = X"00000000") then
                     byte_0 <= data_in( 7 downto 0);
                 end if;
-            elsif(write_enable = "11" and addr_mod = X"00000000") then --write word
-                byte_0 <= data_in(  7 downto  0);
+            
+            elsif(write_enable = "011" or write_enable = "111") then --write half word
+                case addr_mod is       
+                    when X"00000000" => byte_0 <= data_in(  7 downto  0);
+                    when others => NULL;
+                end case;      
             end if;
         end if;
     end if;
 end process;
+
 
 process(clk) begin --write byte 1
     if rising_edge(clk) then
         if(addr_word = X"00000000") then --***This only works for 1 word of LEDs***---
-            if(write_enable = "01") then --write idividual byte
+            if(write_enable = "001") then --write idividual byte
                 if(addr_mod = X"00000001") then
                     byte_1 <= data_in( 7 downto 0);
                 end if;
-            elsif(write_enable = "11" and addr_mod = X"00000000") then --write word
-                byte_1 <= data_in(15 downto 8);
+                
+            elsif(write_enable = "011") then --write half word
+                case addr_mod is       
+                    when X"00000001" => byte_1 <= data_in(  7 downto  0);
+                    when X"00000000" => byte_1 <= data_in( 15 downto  8);
+                    when others => NULL;
+                end case;
+                
+            elsif(write_enable = "111") then --write word
+                case addr_mod is       
+                    when X"00000001" => byte_1 <= data_in(  7 downto  0);  
+                    when X"00000000" => byte_1 <= data_in( 15 downto  8); 
+                    when others => NULL;               
+                end case;
+                
             end if;
         end if;
     end if;
 end process;
+
 
 process(clk) begin --write byte 2
     if rising_edge(clk) then
         if(addr_word = X"00000000") then --***This only works for 1 word of LEDs***---
-            if(write_enable = "01") then --write idividual byte
+            if(write_enable = "001") then --write idividual byte
                 if(addr_mod = X"00000002") then
                     byte_2 <= data_in(7 downto 0);
                 end if;
-            elsif(write_enable = "11" and addr_mod = X"00000000") then --write word
-                byte_2 <= data_in( 23 downto 16);
+                
+            elsif(write_enable = "011") then --write half word
+                case addr_mod is       
+                    when X"00000002" => byte_2 <= data_in(  7 downto  0);
+                    when X"00000001" => byte_2 <= data_in( 15 downto  8);
+                    when others => NULL;
+                end case;
+                
+            elsif(write_enable = "111") then --write word
+                case addr_mod is       
+                    when X"00000002" => byte_2 <= data_in(  7 downto  0);  
+                    when X"00000001" => byte_2 <= data_in( 15 downto  8);
+                    when X"00000000" => byte_2 <= data_in( 23 downto 16); 
+                    when others => NULL;               
+                end case;
+                
             end if;
         end if;
     end if;
 end process;
 
+
 process(clk) begin --write byte 3
     if rising_edge(clk) then
         if(addr_word = X"00000000") then --***This only works for 1 word of LEDs***---
-            if(write_enable = "01") then --write idividual byte
+            if(write_enable = "001") then --write idividual byte
                 if(addr_mod = X"00000003") then
                     byte_3 <= data_in( 7 downto 0);
                 end if;
-            elsif(write_enable = "11" and addr_mod = X"00000000") then --write word
-                byte_3 <= data_in( 31 downto 24);
+                
+            elsif(write_enable = "011") then --write half word
+                case addr_mod is       
+                    when X"00000003" => byte_3 <= data_in(  7 downto  0);
+                    when X"00000002" => byte_3 <= data_in( 15 downto  8);
+                    when others => NULL;
+                end case;
+                
+            elsif(write_enable = "111") then --write word
+                case addr_mod is       
+                    when X"00000003" => byte_3 <= data_in(  7 downto  0);  
+                    when X"00000002" => byte_3 <= data_in( 15 downto  8);
+                    when X"00000001" => byte_3 <= data_in( 23 downto 16); 
+                    when X"00000000" => byte_3 <= data_in( 31 downto 24);               
+                end case;
+                
             end if;
         end if;
     end if;

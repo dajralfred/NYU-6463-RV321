@@ -39,7 +39,7 @@ entity Switch_Memory is
   Port ( 
     clk : IN STD_LOGIC := '0';
     rst : IN STD_LOGIC := '1'; --asynchronous, active LOW
-    read_sw: IN STD_LOGIC := '1'; --control signal used to enable read of switches
+    read_enable: IN STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable read of switches
     addr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := SW_START_ADDR;
     data_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0')
   );
@@ -59,10 +59,15 @@ addr_word(LENGTH_ADDR_BITS-3 downto 0) <= masked_addr(LENGTH_ADDR_BITS-1 downto 
 process(rst,clk) begin
     if(rst = '0') then
         data_out <= (others => '0');
+    
     elsif rising_edge(clk) then
-        if(read_sw = '1') then
+        if(read_enable = "111") then
             data_out <= rom_words;
         end if;
+    
+    else
+        data_out <= (others => '0');
+        
     end if;
 end process;
 
