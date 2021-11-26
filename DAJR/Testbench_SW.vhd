@@ -41,7 +41,7 @@ architecture sw_ach of Testbench_SW is
 
 signal t_clk : STD_LOGIC := '0';
 signal t_rst : STD_LOGIC := '1'; --asynchronous, active LOW
-signal t_read_sw: STD_LOGIC := '1';
+signal t_read_enable: STD_LOGIC_VECTOR(2 downto 0) := "000";
 signal t_addr_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := SW_START_ADDR;
 signal t_data_out: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0);
 
@@ -51,7 +51,7 @@ dut: entity work.Switch_Memory
     Port Map( 
     clk => t_clk,
     rst => t_rst, --asynchronous, active LOW
-    read_sw => t_read_sw,
+    read_enable => t_read_enable,
     addr_in => t_addr_in,
     data_out => t_data_out
   );
@@ -65,9 +65,9 @@ end process;
 
 MAIN_PROG: process begin
 
-    t_read_sw <= '1';
+    t_read_enable <= "111";
     wait for 10 ns;
-    t_read_sw <= '0';
+    t_read_enable <= "000";
     wait for 40 ns;
     
     t_rst <= '0';
