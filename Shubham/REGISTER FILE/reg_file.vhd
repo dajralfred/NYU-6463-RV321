@@ -45,7 +45,7 @@ begin
     process(CLK)
     begin        
         if(rising_edge(CLK)) then
-            if (WriteEnable = '1') then
+            if (WriteEnable = '1' and WriteReg /= "00000") then
                 -- write
                 Reg32(to_integer(unsigned(WriteReg))) <= WriteData;
             end if;
