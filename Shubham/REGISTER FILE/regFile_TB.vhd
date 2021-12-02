@@ -122,6 +122,19 @@ begin
     wait for 10 * period;
       
     ------------------------------------------------------------------------------
+      
+    -- case d, try writing to reg 0x00 == R0 (a read-only register that is always hardwired to equal zero)
+    tWriteEnable <= '1';
+    tReadReg1 <= "00000";
+    tReadReg2 <= "00000";
+    tWriteReg <= "00000"; -- R0
+    tWriteData <= "00000000000000000000000123456789";
+    assert (tReadData1 = "00000000000000000000000000000000" and tReadData2 = "00000000000000000000000000000000" )-- expected output
+    -- error will be reported if ReadData1 and ReadData2 do not contain all zeros value.
+    report "R0 is not acting as read-only special register" severity error;
+    wait for 10 * period;
+      
+    ------------------------------------------------------------------------------        
     assert false
        report "ALL TESTCASES PASSED"
        severity failure;
