@@ -20,7 +20,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
-USE	WORK.NYU_6463_RV32I_pkg.ALL;
+USE	WORK.RV321_pkg.ALL;
 
 entity reg_file is
     Port (
@@ -29,7 +29,7 @@ entity reg_file is
             ReadData1, ReadData2 : out std_logic_vector(31 downto 0);
             WriteReg             : in std_logic_vector(4 downto 0);
             WriteData            : in std_logic_vector(31 downto 0);
-            WriteEnable          : in std_logic;
+            WriteEnable          : in std_logic
             --reg_out              : out Register_Type -- to make the entire Statck register available to use.
     );
 end reg_file;
