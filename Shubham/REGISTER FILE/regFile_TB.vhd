@@ -20,7 +20,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
-USE	WORK.NYU_6463_RV32I_pkg.ALL;
+USE	WORK.RV321_pkg.ALL;
 
 
 
@@ -37,9 +37,7 @@ component reg_file is
             ReadData1, ReadData2 : out std_logic_vector(31 downto 0);
             WriteReg                        : in std_logic_vector(4 downto 0);
             WriteData                      : in std_logic_vector(31 downto 0);
-            WriteEnable                   : in std_logic;
-            reg_out                          : out Register_Type
-    );
+            WriteEnable                   : in std_logic    );
 end component;
 -------------------------------------------------------------------------------------------
 
@@ -48,7 +46,6 @@ end component;
 signal tClk, tWriteEnable: STD_LOGIC;
 signal tReadReg1, tReadReg2, tWriteReg : std_logic_vector(4 downto 0);
 signal tWriteData, tReadData1, tReadData2 : std_logic_vector(31 downto 0);
-signal treg_out : Register_Type;
 -------------------------------------------------------------------------------------------
 
 signal period : time := 10 ns;
@@ -66,16 +63,15 @@ uut: reg_file PORT MAP(
                   WriteEnable => tWriteEnable,
                   WriteData => tWriteData,
                   ReadData1 => tReadData1,
-                  ReadData2 => tReadData2,
-                  reg_out => treg_out
-);
+                  ReadData2 => tReadData2
+                  );
 
 -- continuous clock
     CLK: process 
     begin
-        tclk <= '0';
-        wait for period/2;
         tclk <= '1';
+        wait for period/2;
+        tclk <= '0';
         wait for period/2;
     end process;
 
@@ -91,9 +87,7 @@ begin
     tReadReg2 <= "00010";
     tWriteReg <= "00011";
     tWriteData <= X"89ABCDEF";
-    assert ( treg_out(to_integer(unsigned(tWriteReg))) = tWriteData)-- expected output
-    -- error will be reported if reg_out could not be written into at tWriteReg with tWriteData value..
-    report "Write Operation failed" severity error;
+
     wait for 10 * period;
     
         ---------------------------------------------------------------------------------------
@@ -103,9 +97,7 @@ begin
     tReadReg2 <= "00010";
     tWriteReg <= "00100";
     tWriteData <= X"01234567";
-    assert ( treg_out(to_integer(unsigned(tWriteReg))) = tWriteData)-- expected output
-    -- error will be reported if reg_out could not be written into at tWriteReg with tWriteData value..
-    report "Write Operation failed" severity error;
+
     wait for 10 * period;
     
     ------------------------------------------------------------------------------  
@@ -116,7 +108,7 @@ begin
     tReadReg2 <= "00011";
     tWriteReg <= "00001";
     tWriteData <= "00000000000000000000000000000000";
-    assert (tReadData1 = treg_out(to_integer(unsigned(tReadReg1))) and tReadData2 = treg_out(to_integer(unsigned(tReadReg2))))-- expected output
+    assert (tReadData1 = X"01234567" and tReadData2 = X"89ABCDEF")-- expected output
     -- error will be reported if ReadData1 and ReadData2 do not contain correct value.
     report "Read Operation failed" severity error;
     wait for 10 * period;
@@ -128,7 +120,7 @@ begin
     tReadReg1 <= "00000";
     tReadReg2 <= "00000";
     tWriteReg <= "00000"; -- R0
-    tWriteData <= "00000000000000000000000123456789";
+    tWriteData <= X"01234567";
     assert (tReadData1 = "00000000000000000000000000000000" and tReadData2 = "00000000000000000000000000000000" )-- expected output
     -- error will be reported if ReadData1 and ReadData2 do not contain all zeros value.
     report "R0 is not acting as read-only special register" severity error;
