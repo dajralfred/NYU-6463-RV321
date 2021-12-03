@@ -24,7 +24,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.ALL;
 
 --
-use work.NYU_6463_RV32I_pkg.ALL;
+use work.RV321_pkg.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -92,10 +92,9 @@ Select_Func: with BC_Control select
                              ALU_SLT  when BC_LT, --Perform an SLT  on rs1 and rs2 to see which is lesser.
                              ALU_SLT  when BC_GE, --Perform an SLT  on rs1 and rs2 to see which is greater or maybe equal.
                              ALU_SLTU when BC_LTU,--Perform an SLTU on rs1 and rs2 to see which is lesser.
-                             ALU_SLTU when BC_GEU,--Perform an SLTU on rs1 and rs2 to see which is greater or maybe equal.
-                             '0' when others;
+                             ALU_SLTU when BC_GEU;--Perform an SLTU on rs1 and rs2 to see which is greater or maybe equal.                             
 
-Select_Func: with BC_Control select
+Set_Func: with BC_Control select
              compare <=  Flag_Zero         when BC_EQ, --Flag_Zero     would be 1 if rs1 and rs2 are equal.
                          not Flag_Zero     when BC_NE, --Flag_Zero     would be 0 if rs1 and rs2 are not equal.
                          Flag_Negative     when BC_LT, --Flag_Negative would be 1 if rs1 is less than rs2.
