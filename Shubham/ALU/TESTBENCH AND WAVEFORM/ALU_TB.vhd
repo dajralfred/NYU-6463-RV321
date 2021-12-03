@@ -23,7 +23,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 --Import the Custom designed Package file
-use WORK.NYU_6463_RV32I_pkg.ALL;
+use WORK.RV321_pkg.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
