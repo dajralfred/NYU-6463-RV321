@@ -23,7 +23,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 --Import the Custom designed Package file
-use WORK.NYU_6463_RV32I_pkg.ALL;
+use WORK.RV321_pkg.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -67,7 +67,7 @@ begin
 Map_Signals: BranchCmp Port map(rs1        => rs1,
                                 rs2        => rs2,
                                 BC_Control => BC_Control,
-                                compare    => compare,
+                                compare    => compare
                                );
 
 ----------------------------------------------------------------------------------
@@ -244,4 +244,4 @@ begin
 end process;
 
 
-end ALU_Body_TB;
+end BC_Body_TB;
