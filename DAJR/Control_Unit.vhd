@@ -195,7 +195,7 @@ PROCESS(rst, clk) BEGIN --4 clk cycle FSM
         ELSE
             CASE state IS
                 WHEN ST_1 =>
-                    state <= ST_1;
+                    state <= ST_2;
                 WHEN ST_2=>
                     state<=ST_3;
                 WHEN ST_3=>
@@ -245,13 +245,26 @@ process(rst,state) begin --REG_WE
         REG_WE <= '0';
     elsif(state'event) then
         if(state=ST_1) then
+            if(opc = U_TYPE_AUIPC or opc = U_TYPE_LUI or opc = UJ_TYPE or opc = I_TYPE_JALR) then
+                REG_WE <= '1';
+            else
+                REG_WE <= '0';
+            end if;
             
         elsif(state=ST_2) then
-        
+            if(opc =R_TYPE or opc = I_TYPE_OTHERS or opc = F_TYPE) then
+                REG_WE <= '1';
+            else
+                REG_WE <= '0';
+            end if;
+            
         elsif(state=ST_3) then
-        
-        elsif(state=ST_4) then
-        
+            if(opc = I_TYPE_LOAD) then
+                REG_WE <= '1';
+            else
+                REG_WE <= '0';
+            end if;
+               
         else
             REG_WE <= '0';
         end if;
@@ -262,16 +275,19 @@ process(rst,state) begin --MEM_WE
     if(rst='0') then
         MEM_WE <= "000";
     elsif(state'event) then
-        if(state=ST_1) then
-            
-        elsif(state=ST_2) then
-        
-        elsif(state=ST_3) then
-        
-        elsif(state=ST_4) then
-        
+        if(state=ST_2) then
+            if(prekey = ("000"&S_TYPE)) then
+                MEM_WE <= "001";            
+            elsif(prekey = ("001"&S_TYPE)) then
+                MEM_WE <= "011";
+            elsif(prekey = ("010"&S_TYPE)) then
+                MEM_WE <= "111";
+            else
+                MEM_WE <= "000";
+            end if;
+   
         else
-            REG_WE <= '0';
+            MEM_WE <= "000";
         end if;
     end if;
 end process;
@@ -280,23 +296,24 @@ process(rst,state) begin --MEM_RE
     if(rst='0') then
         MEM_RE <= "000";
     elsif(state'event) then
-        if(state=ST_1) then
-            
-        elsif(state=ST_2) then
-        
-        elsif(state=ST_3) then
-        
-        elsif(state=ST_4) then
+        if(state=ST_2) then
+            if(prekey = ("000"&I_TYPE_LOAD) or prekey = ("100"&I_TYPE_LOAD)) then
+                MEM_RE <= "001";            
+            elsif(prekey = ("001"&I_TYPE_LOAD) or prekey = ("101"&I_TYPE_LOAD)) then
+                MEM_RE <= "011";
+            elsif(prekey = ("010"&I_TYPE_LOAD)) then
+                MEM_RE <= "111";
+            else
+                MEM_RE <= "000";
+            end if;
         
         else
-            REG_WE <= '0';
+            MEM_RE <= "000";
         end if;
     end if;
 end process;
 
 
 --***********************************************************************************************--
-
-
 
 end cu_ach;
