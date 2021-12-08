@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 -- any Xilinx leaf cells in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
-USE WORK.RV321_pkg.ALL; -- include the package to your design
+USE WORK.RV321_pkg.ALL; -- include the package to your design 
 
 entity Program_Counter is
   Port (

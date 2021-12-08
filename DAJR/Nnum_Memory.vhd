@@ -37,7 +37,7 @@ use ieee.std_logic_textio.all;
 
 entity Nnum_Memory is
   Port ( 
-    clk : IN STD_LOGIC := '0';
+    clk : IN STD_LOGIC := '0'; 
     rst : IN STD_LOGIC := '1'; --asynchronous, active LOW
     read_enable: IN STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable read of Nnumber
     addr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := NNUM_START_ADDR;
@@ -60,16 +60,18 @@ process(rst,clk) begin
     if(rst = '0') then
         data_out <= (others => '0');
     elsif rising_edge(clk) then
-        if(read_enable = "111") then
-            --This section needs to be adjusted manually if the word length is changed.
-            data_out(31 downto 24) <= rom_words(to_integer(unsigned(addr_word)))( 7 downto  0);
-            data_out(23 downto 16) <= rom_words(to_integer(unsigned(addr_word)))(15 downto  8);
-            data_out(15 downto  8) <= rom_words(to_integer(unsigned(addr_word)))(23 downto 16);
-            data_out( 7 downto  0) <= rom_words(to_integer(unsigned(addr_word)))(31 downto 24);
-        
-        else
-            data_out <= (others => '0');
-        
+        if(masked_addr < NNUM_LENGTH_BYTES) then
+            if(read_enable = "111") then
+                --This section needs to be adjusted manually if the word length is changed.
+                data_out(31 downto 24) <= rom_words(to_integer(unsigned(addr_word)))( 7 downto  0);
+                data_out(23 downto 16) <= rom_words(to_integer(unsigned(addr_word)))(15 downto  8);
+                data_out(15 downto  8) <= rom_words(to_integer(unsigned(addr_word)))(23 downto 16);
+                data_out( 7 downto  0) <= rom_words(to_integer(unsigned(addr_word)))(31 downto 24);
+            
+            else
+                data_out <= (others => '0');
+            
+            end if;
         end if;
     end if;
 end process;

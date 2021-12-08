@@ -44,7 +44,7 @@ entity Instruction_Memory is
   );
 end Instruction_Memory;
 
-architecture im_ach of Instruction_Memory is
+architecture im_ach of Instruction_Memory is 
 
 signal rom_words: instr_rom := instr_rom_readfile("main.mem");
 signal addr_word: std_logic_vector(LENGTH_ADDR_BITS-1 downto 0) := x"00000000";

@@ -47,7 +47,7 @@ entity Led_Memory is
   );
 end Led_Memory;
 
-architecture led_ach of Led_Memory is
+architecture led_ach of Led_Memory is 
 
 signal byte_0: std_logic_vector(7 downto 0) := (others => '0'); --LSB offset=0
 signal byte_1: std_logic_vector(7 downto 0) := (others => '0'); --offset=1

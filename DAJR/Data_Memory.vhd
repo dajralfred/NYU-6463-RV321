@@ -23,7 +23,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
--- Uncomment the following library declaration if using
+-- Uncomment the following library declaration if using 
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
 
@@ -67,30 +67,34 @@ process(rst,clk) begin --read data
     if(rst = '0') then
         data_out <= (others => '0');
     elsif rising_edge(clk) then
-        if(read_enable = "001") then --read idividual byte
-            case addr_mod is
-                when X"00000000" => data_out <= X"000000" & byte_0(to_integer(unsigned(addr_word)));
-                when X"00000001" => data_out <= X"000000" & byte_1(to_integer(unsigned(addr_word)));
-                when X"00000002" => data_out <= X"000000" & byte_2(to_integer(unsigned(addr_word)));
-                when X"00000003" => data_out <= X"000000" & byte_3(to_integer(unsigned(addr_word)));
-            end case;
-        
-        elsif(read_enable = "011") then --read half word
-            case addr_mod is
-                when X"00000000" => data_out <= X"0000" & byte_1(to_integer(unsigned(addr_word))) & byte_0(to_integer(unsigned(addr_word)));
-                when X"00000001" => data_out <= X"0000" & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word)));
-                when X"00000002" => data_out <= X"0000" & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word)));
-                when X"00000003" => data_out <= X"0000" & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word)));
-            end case;    
+        if(masked_addr < DM_LENGTH_BYTES) then
+            if(read_enable = "001") then --read idividual byte
+                case addr_mod is
+                    when X"00000000" => data_out <= X"000000" & byte_0(to_integer(unsigned(addr_word)));
+                    when X"00000001" => data_out <= X"000000" & byte_1(to_integer(unsigned(addr_word)));
+                    when X"00000002" => data_out <= X"000000" & byte_2(to_integer(unsigned(addr_word)));
+                    when X"00000003" => data_out <= X"000000" & byte_3(to_integer(unsigned(addr_word)));
+                end case;
             
-        elsif(read_enable = "111") then --read word
-            case addr_mod is
-                when X"00000000" => data_out <= byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word))) & byte_0(to_integer(unsigned(addr_word)));
-                when X"00000001" => data_out <= byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word)));
-                when X"00000002" => data_out <= byte_1(to_integer(unsigned(addr_word))+1) & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word)));
-                when X"00000003" => data_out <= byte_2(to_integer(unsigned(addr_word))+1) & byte_1(to_integer(unsigned(addr_word))+1) & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word)));
-            end case; 
-            
+            elsif(read_enable = "011") then --read half word
+                case addr_mod is
+                    when X"00000000" => data_out <= X"0000" & byte_1(to_integer(unsigned(addr_word))) & byte_0(to_integer(unsigned(addr_word)));
+                    when X"00000001" => data_out <= X"0000" & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word)));
+                    when X"00000002" => data_out <= X"0000" & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word)));
+                    when X"00000003" => data_out <= X"0000" & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word)));
+                end case;    
+                
+            elsif(read_enable = "111") then --read word
+                case addr_mod is
+                    when X"00000000" => data_out <= byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word))) & byte_0(to_integer(unsigned(addr_word)));
+                    when X"00000001" => data_out <= byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word)));
+                    when X"00000002" => data_out <= byte_1(to_integer(unsigned(addr_word))+1) & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word)));
+                    when X"00000003" => data_out <= byte_2(to_integer(unsigned(addr_word))+1) & byte_1(to_integer(unsigned(addr_word))+1) & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word)));
+                end case; 
+                
+            else
+                data_out <= (others => '0');
+            end if;
         else
             data_out <= (others => '0');
         end if;
@@ -99,105 +103,113 @@ end process;
 
 process(clk) begin --write byte 0
     if rising_edge(clk) then
-        if(write_enable = "001") then --write idividual byte
-            if(addr_mod = X"00000000") then
-                byte_0(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
-            end if;
-        
-        elsif(write_enable = "011") then --write half word
-            case addr_mod is       
-                when X"00000000" => byte_0(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000003" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 15 downto  8);
-                when others => NULL;
-            end case;              
-
-        elsif(write_enable = "111") then --write word
-            case addr_mod is       
-                when X"00000000" => byte_0(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000001" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
-                when X"00000002" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 23 downto 16);  
-                when X"00000003" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 15 downto  8);                
-            end case;
-        
-        end if;        
+        if(masked_addr < DM_LENGTH_BYTES) then
+            if(write_enable = "001") then --write idividual byte
+                if(addr_mod = X"00000000") then
+                    byte_0(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
+                end if;
+            
+            elsif(write_enable = "011") then --write half word
+                case addr_mod is       
+                    when X"00000000" => byte_0(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000003" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 15 downto  8);
+                    when others => NULL;
+                end case;              
+    
+            elsif(write_enable = "111") then --write word
+                case addr_mod is       
+                    when X"00000000" => byte_0(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000001" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
+                    when X"00000002" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 23 downto 16);  
+                    when X"00000003" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 15 downto  8);                
+                end case;
+            
+            end if; 
+       end if;
     end if;
 end process;
 
 process(clk) begin --write byte 1
     if rising_edge(clk) then
-        if(write_enable = "001") then --write idividual byte
-            if(addr_mod = X"00000001") then
-                byte_1(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
-            end if;
-        
-        elsif(write_enable = "011") then --write half word
-            case addr_mod is       
-                when X"00000001" => byte_1(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000000" => byte_1(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);
-                when others => NULL;
-            end case;              
-
-        elsif(write_enable = "111") then --write word
-            case addr_mod is       
-                when X"00000001" => byte_1(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000002" => byte_1(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
-                when X"00000003" => byte_1(to_integer(unsigned(addr_word))+1) <= data_in( 23 downto 16);  
-                when X"00000000" => byte_1(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
-            end case;
-        
-        end if;        
+        if(masked_addr < DM_LENGTH_BYTES) then
+            if(write_enable = "001") then --write idividual byte
+                if(addr_mod = X"00000001") then
+                    byte_1(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
+                end if;
+            
+            elsif(write_enable = "011") then --write half word
+                case addr_mod is       
+                    when X"00000001" => byte_1(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000000" => byte_1(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);
+                    when others => NULL;
+                end case;              
+    
+            elsif(write_enable = "111") then --write word
+                case addr_mod is       
+                    when X"00000001" => byte_1(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000002" => byte_1(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
+                    when X"00000003" => byte_1(to_integer(unsigned(addr_word))+1) <= data_in( 23 downto 16);  
+                    when X"00000000" => byte_1(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
+                end case;
+            
+            end if;  
+        end if;
     end if;
 end process;
 
 process(clk) begin --write byte 2
     if rising_edge(clk) then
-        if(write_enable = "001") then --write idividual byte
-            if(addr_mod = X"00000002") then
-                byte_2(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
-            end if;
-        
-        elsif(write_enable = "011") then --write half word
-            case addr_mod is       
-                when X"00000002" => byte_2(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000001" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);
-                when others => NULL;
-            end case;              
-
-        elsif(write_enable = "111") then --write word
-            case addr_mod is       
-                when X"00000002" => byte_2(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000003" => byte_2(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
-                when X"00000000" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 23 downto 16);  
-                when X"00000001" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
-            end case;
-        
-        end if;        
+        if(masked_addr < DM_LENGTH_BYTES) then
+            if(write_enable = "001") then --write idividual byte
+                if(addr_mod = X"00000002") then
+                    byte_2(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
+                end if;
+            
+            elsif(write_enable = "011") then --write half word
+                case addr_mod is       
+                    when X"00000002" => byte_2(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000001" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);
+                    when others => NULL;
+                end case;              
+    
+            elsif(write_enable = "111") then --write word
+                case addr_mod is       
+                    when X"00000002" => byte_2(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000003" => byte_2(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
+                    when X"00000000" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 23 downto 16);  
+                    when X"00000001" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
+                end case;
+            
+            end if;  
+        end if;
     end if;
 end process;
 
 process(clk) begin --write byte 3
     if rising_edge(clk) then
-        if(write_enable = "001") then --write idividual byte
-            if(addr_mod = X"00000003") then
-                byte_3(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
-            end if;
-        
-        elsif(write_enable = "011") then --write half word
-            case addr_mod is       
-                when X"00000003" => byte_3(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000002" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);
-                when others => NULL;
-            end case;              
-
-        elsif(write_enable = "111") then --write word
-            case addr_mod is       
-                when X"00000003" => byte_3(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
-                when X"00000000" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 31 downto 24);  
-                when X"00000001" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 23 downto 16);  
-                when X"00000002" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
-            end case;
-        
-        end if;        
+        if(masked_addr < DM_LENGTH_BYTES) then
+            if(write_enable = "001") then --write idividual byte
+                if(addr_mod = X"00000003") then
+                    byte_3(to_integer(unsigned(addr_word))) <= data_in( 7 downto 0);
+                end if;
+            
+            elsif(write_enable = "011") then --write half word
+                case addr_mod is       
+                    when X"00000003" => byte_3(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000002" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);
+                    when others => NULL;
+                end case;              
+    
+            elsif(write_enable = "111") then --write word
+                case addr_mod is       
+                    when X"00000003" => byte_3(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
+                    when X"00000000" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 31 downto 24);  
+                    when X"00000001" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 23 downto 16);  
+                    when X"00000002" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
+                end case;
+            
+            end if; 
+        end if;
     end if;
 end process;
 

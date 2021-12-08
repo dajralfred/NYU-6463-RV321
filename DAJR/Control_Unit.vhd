@@ -71,7 +71,7 @@ entity Control_Unit is
     
     opc_out: out std_logic_vector(9 downto 0) -- (funct3 & opcode) output needed for imm and data extension
   );
-end Control_Unit;
+end Control_Unit; 
 
 architecture cu_ach of Control_Unit is
 
@@ -125,7 +125,7 @@ with prekey select bc_out <= --bc_out assignment
     BC_EQ  when others;
 
 with opc select rs1 <= --rs1 assignment
-    "00000" when F_TYPE,
+    "00000" when F_TYPE | U_TYPE_LUI,
     instr(19 downto 15) when others; 
 
 rs2  <= instr(24 downto 20);--rs2 assignment
@@ -138,12 +138,12 @@ with prekey select rd_input <= --rd_input assignment
     '0' when "0001101111" | "0001100111",
     '1' when others;
     
-with prekey select use_rs1 <= --use_rs1 assignment
+with prekey select use_rs1 <= --use_rs1 assignment ***should use opc instead
     '0' when "0000010111" | "0001101111" | (funct3 & "1100011"),
     '1' when others; 
     
-with prekey select use_rs2 <= --use_rs2 assignment
-    '1' when (funct3 & "0110011"),
+with opc select use_rs2 <= --use_rs2 assignment
+    '1' when "0110011",
     '0' when others; 
     
 --with prekey select sign_ext_imm <= --sign_ext_imm assignment
@@ -155,7 +155,7 @@ with opc select imm <= --imm assignment
     X"00000" & instr(31 downto 25) & instr(11 downto 7)                                     when "0100011",
     "000" & X"0000" & instr(31) & instr(7) & instr(30 downto 25) & instr(11 downto 8) & '0' when "1100011",
     instr(31 downto 12) & X"000"                                                            when "0110111" | "0010111",
-    "000" & X"00" & instr(31) & instr(30 downto 21) & instr(20) & instr(19 downto 12) & '0' when "1101111",
+    "000" & X"00" & instr(31) & instr(19 downto 12) & instr(20) & instr(30 downto 21) & '0' when "1101111",
     (others => '0')                                                                         when others;
 
 --with prekey select sign_ext_data <= --sign_ext_data assignment
@@ -245,14 +245,14 @@ process(rst,state) begin --REG_WE
         REG_WE <= '0';
     elsif(state'event) then
         if(state=ST_1) then
-            if(opc = U_TYPE_AUIPC or opc = U_TYPE_LUI or opc = UJ_TYPE or opc = I_TYPE_JALR) then
+            if(opc = U_TYPE_AUIPC or opc = UJ_TYPE or opc = I_TYPE_JALR) then
                 REG_WE <= '1';
             else
                 REG_WE <= '0';
             end if;
             
         elsif(state=ST_2) then
-            if(opc =R_TYPE or opc = I_TYPE_OTHERS or opc = F_TYPE) then
+            if(opc =R_TYPE or opc = I_TYPE_OTHERS or opc = F_TYPE or opc = U_TYPE_LUI) then
                 REG_WE <= '1';
             else
                 REG_WE <= '0';
