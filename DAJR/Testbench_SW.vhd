@@ -65,7 +65,17 @@ end process;
 
 MAIN_PROG: process begin
 
-    t_read_enable <= "111";
+    t_read_enable <= "111"; -- read word
+    wait for 10 ns;
+    t_read_enable <= "000";
+    wait for 40 ns;
+    
+    t_read_enable <= "011"; -- read half word
+    wait for 10 ns;
+    t_read_enable <= "000";
+    wait for 40 ns;
+    
+    t_read_enable <= "011"; -- read byte
     wait for 10 ns;
     t_read_enable <= "000";
     wait for 40 ns;

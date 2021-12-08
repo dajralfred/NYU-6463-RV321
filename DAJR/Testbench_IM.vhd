@@ -39,7 +39,7 @@ entity Testbench_IM is
 --  Port ( );
 end Testbench_IM;
 
-architecture tim_ach of Testbench_IM is
+architecture tim_ach of Testbench_IM is 
 
 signal t_clk : STD_LOGIC := '0';
 signal t_read_instr: STD_LOGIC := '1';
