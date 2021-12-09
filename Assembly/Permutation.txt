@@ -65,7 +65,7 @@ jal zero,STOP
 
 STOP:
 sw gp,0(zero)
-ecall
+ECALL
 
 
 
