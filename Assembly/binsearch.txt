@@ -1,3 +1,4 @@
+#Program to perform Binary Search with given arguments
 # a0 = int arr[]
 # a1 = int needle
 # a2 = int size
