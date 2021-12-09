@@ -1,0 +1,74 @@
+#Define 2 numbers: N and R to find the permutation: nPr
+addi sp,x0,0 #Clear the Stack Pointer
+addi t0,x0,10 #N = 6
+addi t1,x0,8 #R = 2
+sub t2, t0,t1 #N-R = 4
+
+addi t3,zero,2 #To check how many times Factorial has been called
+addi t4,zero,1 #To limit its call to 2 
+
+#Load the parameters to compute N!
+CALL1:
+add a0,zero,t0 #load the Factorial argument with the N
+jal zero, FACTORIAL
+
+#Loading the parameters to compute (N-R)!
+CALL2:
+addi t3,t3,-1
+add t0,zero,a0 #Save the just calculated N!
+add a0,zero,t1 #load the Factorial argument with the N-R
+jal zero, FACTORIAL
+
+#Program to find factorial of a number
+FACTORIAL:
+addi sp,sp,8 #Save the Stack Pointer
+addi s0,zero,2 #To check if the given number is not less than 2 i.e not 0 or 1.
+blt a0,s0,retone #If given number is less than 2, return 1 as 0! and 1! == 1
+
+addi ra,zero,1 #To mark the End of the computation
+addi a1,a0,0 #Decrements to 1 after getting multiplied
+sw a0,0(sp) #Store in the Data Memory for later use
+
+FACT:
+addi a1,a1,-1 #Decrement once
+sw a1,4(sp) #Update the data memory for the latest factor
+bne a1,ra,MUL #Jump to MUL to find the product.
+jal zero, NEXT #Jump to NEXT at the end of Factorial
+
+#Perform Repeated addition to compute product between two numbers : a0 * a1
+MUL:
+lw tp,0(sp) #load the temporary variable for Repeated addition
+add a0,a0,tp #Repeated addition
+addi a1,a1,-1 #Decrement the 2nd number
+bne a1,ra,MUL #Repeat the above steps until 1
+
+sw a0, 0(sp) #Store the intermediate product
+lw a1, 4(sp) #Load the 2nd number back
+jal zero,FACT #Jump to FACT for remianing factors
+
+#Return 1 when number is 0 or 1 as 0! & 1! == 1.
+retone:
+addi a0,zero,1 #Save the final answer in a0/x10 register
+sw a0,0(sp) #Store the final answer in the Data Memory
+
+NEXT:
+addi gp,zero,0 #Initialize the Quotient with 0.
+beq t3,t4,DIV #Call DIV when factorial of both the numbers are calculated
+jal zero,CALL2 #goto CALL2 to compute the Factorial of (N-R)
+
+#Perform Repeated substraction to achieve Divison : N!/(N-R)!
+DIV:
+SUB t0,t0,a0
+addi gp,gp,1 #Increment the Quotient
+bne t0,zero,DIV #Repeat until Dividend is not Zero.
+jal zero,STOP
+
+STOP:
+sw gp,0(zero)
+ecall
+
+
+
+
+
+
