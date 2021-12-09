@@ -1,5 +1,5 @@
 # 1. Permutation
-## Computed N!/(N-R)! by Calculating N! and then (N-R)! separately and then dividing them together to get value of Permutation
+### Computed N!/(N-R)! by Calculating N! and then (N-R)! separately and then dividing them together to get value of Permutation
 The Final Result is stored in Data Memory as:
 -0x00000000 : N!/(N-R)!
 -0x00000008 : N!
