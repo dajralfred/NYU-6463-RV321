@@ -11,3 +11,6 @@ The Final Result is stored in Register Stack as:
  - Register x1(ra) holds the value of the neddle if its present in the given array, otherwise 0
  - Register x2(sp) holds the distane from the initial address of arr[], which is the position of the needle in the arr[].
 
+# 3. Read from Switch Register and Write to LED register : SW_LED.txt
+### Read from Switch Register @ 0x00100010 and Write it to LED Register @ 0x00100014
+
