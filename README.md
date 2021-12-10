@@ -14,7 +14,7 @@ Implementation of a subset of the open source RISCV architecture on an FPGA to c
 - Copy the contents of the .mem program you wish to run into the main.mem file linked to in the program
 - Be careful of choosing the correct absolute address for the main.mem and nnum.mem files
 - To run on FPGA Dev Board, simply synthesize Version 3 of the processor, implement it, 
-- ensure that all timing and utililzation steps succed, then generate the bitstream and program the devide
+ensure that all timing and utililzation steps succed, then generate the bitstream and program the devide
 
 ## Complex Program 1: Permutation : permutation.txt
 ### Computed N!/(N-R)! by Calculating N! and then (N-R)! separately and then dividing them together to get value of Permutation
