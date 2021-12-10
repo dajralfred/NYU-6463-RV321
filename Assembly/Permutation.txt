@@ -1,3 +1,11 @@
+/*
+ * Standalone assembly language program for NYU-6463-RV32I processor
+ * The label 'reset handler' will be called upon startup.
+ */
+.global reset_handler
+.type reset_handler,@function
+
+reset_handler:
 #Define 2 numbers: N and R to find the permutation: nPr
 addi sp,x0,0 #Clear the Stack Pointer
 addi t0,x0,10 #N = 6
