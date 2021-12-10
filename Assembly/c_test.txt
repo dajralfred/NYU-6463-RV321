@@ -1,0 +1,11 @@
+volatile int constant_x = 0xabcd;
+
+#define SW  *(volatile int*)0x00100010
+#define LED *(volatile int*)0x00100014
+
+
+int main() {
+    constant_x++;
+    LED= constant_x;
+}
+
