@@ -9,10 +9,12 @@ Implementation of a subset of the open source RISCV architecture on an FPGA to c
   - Shubham Shandilya:  <b>ss15590</b><br>
 
 ## Instructions to "run" the Processor:
--
--
--
--
+- Unzip the Version of choice and open the project contained inside in Vivado
+- Version 2 and 3 are synthesizable while only V3 robust to C-derived programs
+- Copy the contents of the .mem program you wish to run into the main.mem file linked to in the program
+- Be careful of choosing the correct absolute address for the main.mem and nnum.mem files
+- To run on FPGA Dev Board, simply synthesize Version 3 of the processor, implement it, 
+- ensure that all timing and utililzation steps succed, then generate the bitstream and program the devide
 
 ## Complex Program 1: Permutation : permutation.txt
 ### Computed N!/(N-R)! by Calculating N! and then (N-R)! separately and then dividing them together to get value of Permutation
