@@ -1,3 +1,11 @@
+/*
+ * Standalone assembly language program for NYU-6463-RV32I processor
+ * The label 'reset handler' will be called upon startup.
+ */
+.global reset_handler
+.type reset_handler,@function
+
+reset_handler:
 #Program to perform Binary Search with given arguments
 # a0 = int arr[]
 # a1 = int needle
