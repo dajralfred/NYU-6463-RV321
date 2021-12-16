@@ -1,7 +1,0 @@
-000E0E13	addi  x28, x28, 0 	//(X"00000000")
-FCEE8E93	addi  x29, x29, -50 	//(X"FFFFFFCE")
-032F0F13	addi  x30, x30, 50 	//(X"00000032")
-064F8F93	addi  x31, x31, 100 	//(X"00000064")
-01DE20B3	slt   x1,  x28, x29	//Place the value 1 in register rd if register rs1 is less than register rs2 when both are treated as signed numbers, else 0 is written to rd. 
-01CEA133	slt   x2,  x29, x28	//Place the value 1 in register rd if register rs1 is less than register rs2 when both are treated as signed numbers, else 0 is written to rd.
-000E21B3	slt   x3,  x28, x0	//Place the value 1 in register rd if register rs1 is less than register rs2 when both are treated as signed numbers, else 0 is written to rd.
