@@ -50,6 +50,6 @@ begin
                           '0' when others;
     Zero_Flag <= Data_Zero_Flag;                     
                           
-    Negative_Flag_SLT <= std_logic(Diff_Val(31)); 
+    Negative_Flag_SLT <= '1' signed(SrcA) < signed(SrcB) else '0'; 
 
 end Behavioral;
