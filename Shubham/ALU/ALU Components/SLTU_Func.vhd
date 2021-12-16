@@ -53,6 +53,6 @@ architecture Behavioral of SLTU_Func is
                             '0' when others;
 
       Zero_Flag <= Data_Zero_Flag;                                               
-      Negative_Flag_SLTU <= std_logic(Diff_Val(31)); 
+      Negative_Flag_SLTU <= '1' when unsigned(SrcA) < unsigned(SrcB) else '0'; 
 
   end Behavioral;
