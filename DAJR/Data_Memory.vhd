@@ -43,7 +43,7 @@ entity Data_Memory is
     read_enable: IN STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable read of data ram
     addr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := DM_START_ADDR;
     data_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
-    data_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0')
+    data_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0') 
   );
 end Data_Memory;
 
@@ -74,6 +74,7 @@ process(rst,clk) begin --read data
                     when X"00000001" => data_out <= X"000000" & byte_1(to_integer(unsigned(addr_word)));
                     when X"00000002" => data_out <= X"000000" & byte_2(to_integer(unsigned(addr_word)));
                     when X"00000003" => data_out <= X"000000" & byte_3(to_integer(unsigned(addr_word)));
+                    when others => NULL;
                 end case;
             
             elsif(read_enable = "011") then --read half word
@@ -82,6 +83,7 @@ process(rst,clk) begin --read data
                     when X"00000001" => data_out <= X"0000" & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word)));
                     when X"00000002" => data_out <= X"0000" & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word)));
                     when X"00000003" => data_out <= X"0000" & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word)));
+                    when others => NULL;
                 end case;    
                 
             elsif(read_enable = "111") then --read word
@@ -90,6 +92,7 @@ process(rst,clk) begin --read data
                     when X"00000001" => data_out <= byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word))) & byte_1(to_integer(unsigned(addr_word)));
                     when X"00000002" => data_out <= byte_1(to_integer(unsigned(addr_word))+1) & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word))) & byte_2(to_integer(unsigned(addr_word)));
                     when X"00000003" => data_out <= byte_2(to_integer(unsigned(addr_word))+1) & byte_1(to_integer(unsigned(addr_word))+1) & byte_0(to_integer(unsigned(addr_word))+1) & byte_3(to_integer(unsigned(addr_word)));
+                    when others => NULL;
                 end case; 
                 
             else
@@ -121,7 +124,8 @@ process(clk) begin --write byte 0
                     when X"00000000" => byte_0(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
                     when X"00000001" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
                     when X"00000002" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 23 downto 16);  
-                    when X"00000003" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 15 downto  8);                
+                    when X"00000003" => byte_0(to_integer(unsigned(addr_word))+1) <= data_in( 15 downto  8);   
+                    when others => NULL;             
                 end case;
             
             end if; 
@@ -149,7 +153,8 @@ process(clk) begin --write byte 1
                     when X"00000001" => byte_1(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
                     when X"00000002" => byte_1(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
                     when X"00000003" => byte_1(to_integer(unsigned(addr_word))+1) <= data_in( 23 downto 16);  
-                    when X"00000000" => byte_1(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
+                    when X"00000000" => byte_1(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8); 
+                    when others => NULL;               
                 end case;
             
             end if;  
@@ -177,7 +182,8 @@ process(clk) begin --write byte 2
                     when X"00000002" => byte_2(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
                     when X"00000003" => byte_2(to_integer(unsigned(addr_word))+1) <= data_in( 31 downto 24);  
                     when X"00000000" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 23 downto 16);  
-                    when X"00000001" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
+                    when X"00000001" => byte_2(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);  
+                    when others => NULL;              
                 end case;
             
             end if;  
@@ -205,7 +211,8 @@ process(clk) begin --write byte 3
                     when X"00000003" => byte_3(to_integer(unsigned(addr_word))) <= data_in(  7 downto  0);
                     when X"00000000" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 31 downto 24);  
                     when X"00000001" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 23 downto 16);  
-                    when X"00000002" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);                
+                    when X"00000002" => byte_3(to_integer(unsigned(addr_word))) <= data_in( 15 downto  8);
+                    when others => NULL;                
                 end case;
             
             end if; 

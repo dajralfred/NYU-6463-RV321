@@ -27,7 +27,7 @@ USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
 
--- Uncomment the following library declaration if instantiating
+-- Uncomment the following library declaration if instantiating 
 -- any Xilinx leaf cells in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
@@ -44,6 +44,7 @@ signal t_rst : STD_LOGIC := '1'; --asynchronous, active LOW
 signal t_read_enable: STD_LOGIC_VECTOR(2 downto 0) := "000";
 signal t_addr_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := SW_START_ADDR;
 signal t_data_out: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0);
+signal t_SW_IN: STD_LOGIC_VECTOR(15 downto 0) := (others => '0'); --********
 
 begin
 
@@ -53,7 +54,8 @@ dut: entity work.Switch_Memory
     rst => t_rst, --asynchronous, active LOW
     read_enable => t_read_enable,
     addr_in => t_addr_in,
-    data_out => t_data_out
+    data_out => t_data_out,
+    SW_IN => t_SW_IN
   );
 
 CLK_GEN:process begin --10ns Period
@@ -64,25 +66,36 @@ CLK_GEN:process begin --10ns Period
 end process;
 
 MAIN_PROG: process begin
-
+    
+    t_SW_IN <= X"ABCD";
+    
     t_read_enable <= "111"; -- read word
     wait for 10 ns;
+    assert(t_data_out=X"0000ABCD") report "The instruction output did not match the expected output!" severity FAILURE;
     t_read_enable <= "000";
     wait for 40 ns;
+    
     
     t_read_enable <= "011"; -- read half word
     wait for 10 ns;
+    assert(t_data_out=X"0000ABCD") report "The instruction output did not match the expected output!" severity FAILURE;
     t_read_enable <= "000";
     wait for 40 ns;
     
-    t_read_enable <= "011"; -- read byte
+    
+    t_read_enable <= "001"; -- read byte
     wait for 10 ns;
+    assert(t_data_out=X"000000CD") report "The instruction output did not match the expected output!" severity FAILURE;
     t_read_enable <= "000";
     wait for 40 ns;
+    
     
     t_rst <= '0';
-    wait for 20ns;
+    wait for 10ns;
+    assert(t_data_out=X"00000000") report "The instruction output did not match the expected output!" severity FAILURE;
+    t_SW_IN <= X"0000";
     t_rst <= '1';
+    wait for 10ns;
     assert(t_data_out=X"00000000") report "The instruction output did not match the expected output!" severity FAILURE;
     
     

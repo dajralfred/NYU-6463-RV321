@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 -- any Xilinx leaf cells in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
-USE WORK.RV321_pkg.ALL; -- include the package to your design
+USE WORK.RV321_pkg.ALL; -- include the package to your design 
 use std.textio.all;
 use ieee.std_logic_textio.all;
 

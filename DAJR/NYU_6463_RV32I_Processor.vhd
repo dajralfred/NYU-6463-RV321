@@ -38,7 +38,10 @@ entity NYU_6463_RV32I_Processor is
     clk: in std_logic := '0';
     rst: in std_logic := '1'; --Active LOW, asynchronous
     
-    cpu_out: out std_logic_vector(31 downto 0) --output of cpu (to use --> write to register r0 using r_type, load or i_type_others instructions)
+    --cpu_out: out std_logic_vector(31 downto 0); --output of cpu (to use --> write to register r0 using r_type, load or i_type_others instructions)
+    
+    SW : in std_logic_vector(15 downto 0) := (others => '0');
+    LED : out std_logic_vector(15 downto 0) := (others => '0')
   );
 end NYU_6463_RV32I_Processor;
 
@@ -84,6 +87,8 @@ signal t_compare: std_logic := '0'; --comparison result from BC block
 
 signal t_opc_out: std_logic_vector(9 downto 0); -- (funct3 & opcode) output needed for imm and data extension
 
+signal t_state_out : StateType := ST_4;
+
 --************************************************************************--
 --Other signals
 signal t_pc_addr_out: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0'); --PC out to IM and alu_mux_1
@@ -91,6 +96,7 @@ signal t_pc_addr_next: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (other
 
 --IM
 signal t_instr: std_logic_vector(31 downto 0);--instruction output to Control Unit
+signal t_instr2: std_logic_vector(31 downto 0);--instruction output to Memory
 
 --regfile
 signal t_ReadData1 : std_logic_vector(31 downto 0); 
@@ -110,7 +116,9 @@ signal t_mem_data_out: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (other
 signal t_data_ext: std_logic_vector(31 downto 0); --32 bits sign extended data to output_mux
 
 --************************************************************************--
---Output
+--I/O
+signal t_SW : std_logic_vector(15 downto 0) := (others => '0');
+signal t_LED : std_logic_vector(15 downto 0) := (others => '0');
 signal out_con_sig: std_logic_vector(13 downto 0); --output control signal of cpu
 signal sig_cpu_out: std_logic_vector(31 downto 0); --output of cpu
 
@@ -140,9 +148,13 @@ end component;
 component Instruction_Memory is
   Port ( 
     clk : IN STD_LOGIC := '0';
+    rst : IN STD_LOGIC := '1';--*******
     read_instr: IN STD_LOGIC := '1'; --control signal used to enable read of next instruction
     addr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := IM_START_ADDR;
-    instr_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0)
+    addr_in2: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');--*******
+    instr_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0);
+    instr_out2: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0);--*******
+    read_enable: IN STD_LOGIC_VECTOR(2 downto 0) := "000" --control signal used to enable read of mem --*******
   );
 end component;
 
@@ -182,7 +194,8 @@ component Control_Unit is
     
     compare: in std_logic := '0'; --comparison result from BC block
     
-    opc_out: out std_logic_vector(9 downto 0) -- (funct3 & opcode) output needed for imm and data extension
+    opc_out: out std_logic_vector(9 downto 0); -- (funct3 & opcode) output needed for imm and data extension
+    state_out : out StateType := ST_4
   );
 end component; 
 
@@ -194,7 +207,9 @@ component reg_file is
             ReadData1, ReadData2 : out std_logic_vector(31 downto 0);
             WriteReg             : in std_logic_vector(4 downto 0);
             WriteData            : in std_logic_vector(31 downto 0);
-            WriteEnable          : in std_logic
+            WriteEnable          : in std_logic;
+            opc_in               : in std_logic_vector(9 downto 0); -- (funct3 & opcode) output needed for imm and data extension
+            state_in             : in StateType
     );
 end component;
 
@@ -239,7 +254,10 @@ component Memory is
     MEM_RE: IN STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable read of mem
     addr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := DM_START_ADDR;
     data_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
-    data_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0')
+    data_out: OUT STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
+    instr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
+    SW_IN: IN STD_LOGIC_VECTOR(15 downto 0) := (others => '0'); --********
+    LED_OUT: OUT STD_LOGIC_VECTOR(15 downto 0) := (others => '0') --******
   );
 end component;
 
@@ -274,9 +292,13 @@ MU1: Program_Counter
 MU2: Instruction_Memory 
   Port Map( 
     clk => clk,
+    rst => rst,
     read_instr => t_read_instr, --control signal used to enable read of next instruction
     addr_in => t_pc_addr_out,
-    instr_out => t_instr
+    addr_in2 => t_ALU_RESULT,
+    instr_out => t_instr,
+    instr_out2 => t_instr2,
+    read_enable => t_MEM_RE
   );
 
 --Control Unit
@@ -315,7 +337,9 @@ MU3: Control_Unit
     
     compare => t_compare, --comparison result from BC block
     
-    opc_out => t_opc_out -- (funct3 & opcode) output needed for imm and data extension
+    opc_out => t_opc_out, -- (funct3 & opcode) output needed for imm and data extension
+    
+    state_out => t_state_out
   );
 
 --regfile
@@ -328,7 +352,9 @@ MU4: reg_file
             ReadData2            => t_ReadData2,
             WriteReg             => t_rd,
             WriteData            => rd_mux,
-            WriteEnable          => t_REG_WE
+            WriteEnable          => t_REG_WE,
+            opc_in               => t_opc_out,
+            state_in             => t_state_out
     );
 
 --b.c.
@@ -369,7 +395,10 @@ MU8: Memory
     MEM_RE => t_MEM_RE, --control signal used to enable read of mem
     addr_in => t_ALU_RESULT,
     data_in => t_ReadData2,
-    data_out => t_mem_data_out
+    data_out => t_mem_data_out,
+    instr_in => t_instr2,
+    SW_IN => t_SW,
+    LED_OUT => t_LED
   );
 
 --data ext.
@@ -399,12 +428,15 @@ with t_use_alu select output_mux <= --to rd (& CPU output)
     t_data_ext when others;    
 
 --************************************************************************--
---Output
+--I/O
 out_con_sig <= t_REG_WE & t_rd_input & t_rd & t_opc_out(6 downto 0);
 with out_con_sig select sig_cpu_out <= --output of cpu
     output_mux when "1100000"&R_TYPE | "1100000"&I_TYPE_LOAD | "1100000"&I_TYPE_OTHERS,
     (others => '0') when others;    
 
-cpu_out <= sig_cpu_out;
+--cpu_out <= sig_cpu_out;
+
+t_SW <= SW;
+LED <= t_LED;-- or SW;
 
 end cpu_ach;

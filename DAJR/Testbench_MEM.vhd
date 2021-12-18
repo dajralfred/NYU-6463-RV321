@@ -32,7 +32,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 USE WORK.RV321_pkg.ALL; -- include the package to your design
-use std.textio.all;
+use std.textio.all; 
 use ieee.std_logic_textio.all;
 
 entity Testbench_MEM is
@@ -52,6 +52,9 @@ signal t_MEM_RE: STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to
 signal t_addr_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := DM_START_ADDR;
 signal t_data_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
 signal t_data_out: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0');
+signal t_instr_in: STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := (others => '0'); --***
+signal t_SW_IN: STD_LOGIC_VECTOR(15 downto 0) := (others => '0'); --********
+signal t_LED_OUT: STD_LOGIC_VECTOR(15 downto 0) := (others => '0'); --******
 
 begin
 
@@ -67,7 +70,10 @@ dut: entity work.Memory
     MEM_RE => t_MEM_RE, --control signal used to enable read of mem
     addr_in => t_addr_in,
     data_in => t_data_in,
-    data_out => t_data_out
+    data_out => t_data_out,
+    instr_in => t_instr_in,
+    SW_IN => t_SW_IN,
+    LED_OUT => t_LED_OUT
   );
 
 CLK_GEN:process begin --10ns Period
@@ -214,23 +220,29 @@ begin
 --*************************************************************************************************************--
     t_addr_in <= SW_START_ADDR;
     
+    t_SW_IN <= X"ABCD";        
+    
     t_MEM_RE <= "111"; -- read word
     wait for 10 ns;
+    assert(t_data_out=X"0000ABCD") report "The instruction output did not match the expected output!" severity FAILURE;
     t_MEM_RE <= "000";
     wait for 40 ns;
     
     t_MEM_RE <= "011"; -- read half word
     wait for 10 ns;
+    assert(t_data_out=X"0000ABCD") report "The instruction output did not match the expected output!" severity FAILURE;
     t_MEM_RE <= "000";
     wait for 40 ns;
     
-    t_MEM_RE <= "011"; -- read byte
+    t_MEM_RE <= "001"; -- read byte
     wait for 10 ns;
+    assert(t_data_out=X"000000CD") report "The instruction output did not match the expected output!" severity FAILURE;
     t_MEM_RE <= "000";
     wait for 40 ns;
     
     t_rst <= '0';
     wait for 20ns;
+    assert(t_data_out=X"00000000") report "The instruction output did not match the expected output!" severity FAILURE;
     t_rst <= '1';
     assert(t_data_out=X"00000000") report "The instruction output did not match the expected output!" severity FAILURE;
     
@@ -254,6 +266,7 @@ begin
     t_MEM_RE <= "111";
     wait for 10ns;
     assert(t_data_out = X"89abcdef") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_LED_OUT = X"cdef") report "The LED output did not match the expected output!" severity FAILURE;
     
     
     -- disable read
@@ -283,39 +296,52 @@ begin
     t_MEM_RE <= "111";
     wait for 10ns;
     assert(t_data_out = X"33221100") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_LED_OUT = X"1100") report "The LED output did not match the expected output!" severity FAILURE;
     
     --attempt word read at non-word aligned address and ensure output = 332211
     t_addr_in <= t_addr_in + 1;
     wait for 10ns;
     assert(t_data_out = X"00332211") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_LED_OUT = X"1100") report "The LED output did not match the expected output!" severity FAILURE;
     
     --verify byte at address + offset 1
     t_MEM_RE <= "001";
     wait for 10ns;
     assert(t_data_out = X"00000011") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_LED_OUT = X"1100") report "The LED output did not match the expected output!" severity FAILURE;
     
     --verify half word at address + offet 2
     t_addr_in <= t_addr_in + 1;
     t_MEM_RE <= "011";
     wait for 10ns;
     assert(t_data_out = X"00003322") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_LED_OUT = X"1100") report "The LED output did not match the expected output!" severity FAILURE;
         
     --reset and verify output = 0
     t_rst <= '0';
     wait for 10ns;
     assert(t_data_out = X"00000000") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_LED_OUT = X"0000") report "The LED output did not match the expected output!" severity FAILURE;
     
     --disable reset and read and ensure that output does not change
     t_rst <= '1';
     t_MEM_RE <= "000";
     wait for 10ns;
     assert(t_data_out = X"00000000") report "The output did not match the expected output!" severity FAILURE;
+    assert(t_LED_OUT = X"0000") report "The LED output did not match the expected output!" severity FAILURE;
     
    
     report "All LED tests passed successfully!";
     --std.env.stop;
 --*************************************************************************************************************--   
+    t_addr_in <= IM_START_ADDR;    
+    wait for 10ns;
+    t_instr_in <= X"FFFF46F0"; 
+    wait for 10ns;
+    assert(t_data_out = X"FFFF46F0") report "The output did not match the expected output!" severity FAILURE;
     
+    
+--*************************************************************************************************************--       
     report "All tests passed successfully!";
     std.env.stop;
     

@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 -- any Xilinx leaf cells in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
-USE WORK.RV321_pkg.ALL; -- include the package to your design
+USE WORK.RV321_pkg.ALL; -- include the package to your design 
 use std.textio.all;
 use ieee.std_logic_textio.all;
 
@@ -73,7 +73,7 @@ signal t_use_alu: std_logic := '1'; -- zero to use data_ram output
 
 signal t_compare: std_logic := '0'; --comparison result from BC block
 
-signal t_opc_out: opcode; -- opcode output needed for imm extension
+signal t_opc_out: std_logic_vector( 9 downto 0); -- opcode output needed for imm extension
 
 begin
 
@@ -125,24 +125,52 @@ MAIN_PROG: process
 file file_pointer: text open read_mode is "test.txt";
 variable frow:line;
 variable file_data: std_logic_vector(LENGTH_ADDR_BITS-1 downto 0);
+variable pc:integer := 1;
 
 begin
 
     --file_open(file_pointer,"test.txt",read_mode);
-    readline(file_pointer,frow);
+    readline(file_pointer,frow); --populate x28
     hread(frow,file_data);      
+    t_instr <= file_data;        
+    wait for 40 ns;
     
+    readline(file_pointer,frow); --populate x29
+    hread(frow,file_data);      
+    t_instr <= file_data;        
+    wait for 40 ns;
+    
+    readline(file_pointer,frow); --populate x30
+    hread(frow,file_data);      
+    t_instr <= file_data;        
+    wait for 40 ns;
+    
+    readline(file_pointer,frow); --populate x31
+    hread(frow,file_data);      
     t_instr <= file_data;        
     wait for 40 ns;
         
-    while not endfile(file_pointer)loop
+    while (pc /= 37) loop --not endfile(file_pointer)loop
         readline(file_pointer,frow);
         hread(frow,file_data);      
         
         t_instr <= file_data;        
-        wait for 40 ns;
+        wait for 10 ns;
+        wait for 10 ns;
+        t_compare <= '1';
+        wait for 10 ns;
+        wait for 10 ns;
         
+        
+        wait for 10 ns;
+        wait for 10 ns;
+        t_compare <= '0';
+        wait for 10 ns;
+        wait for 10 ns;
+        --std.env.stop;
         --assert(t_data_out=file_data) report "The instruction output did not match the expected output!" severity FAILURE;
+        
+        pc := pc+1;
         
     end loop;
     report "All tests passed successfully!";

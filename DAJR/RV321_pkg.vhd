@@ -36,10 +36,10 @@ use ieee.std_logic_textio.all;
 
 package RV321_pkg is
 
-constant IM_LENGTH_WORDS: integer := 512;-- Number of words in Instruction Memory
+constant IM_LENGTH_WORDS: integer := 1024;-- Number of words in Instruction Memory
 constant NNUM_LENGTH_WORDS: integer := 3;-- Number of words in N-number Memory
 constant SW_LED_LENGTH_WORDS: integer := 1;-- Number of words in Switch Memory
-constant DM_LENGTH_WORDS: integer := 1024;-- Number of words in Data Memory
+constant DM_LENGTH_WORDS: integer := 4096;-- Number of words in Data Memory
 
 constant LENGTH_ADDR_BITS: integer := 32; --address width in bits (word size)
 constant LENGTH_ADDR_BYTES: integer := LENGTH_ADDR_BITS/8; --address width in bytes
@@ -68,6 +68,8 @@ impure function nnum_readfile(FileName : STRING) return nnum;
 
 --Register_Type : 32 32-bits registers
 type Register_Type is array (0 to 31) of std_logic_vector(31 downto 0);
+
+TYPE StateType IS (ST_1, ST_2, ST_3, ST_4, ST_STOP);
 
 subtype opcode is std_logic_vector(6 downto 0);
     

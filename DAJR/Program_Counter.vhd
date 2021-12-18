@@ -45,7 +45,7 @@ entity Program_Counter is
    );
 end Program_Counter;
 
-architecture pc_ach of Program_Counter is
+architecture pc_ach of Program_Counter is 
 
 signal addr: std_logic_vector((LENGTH_ADDR_BITS-1) downto 0) := IM_START_ADDR;
 

@@ -37,7 +37,7 @@ use ieee.std_logic_textio.all;
 
 entity Nnum_Memory is
   Port ( 
-    clk : IN STD_LOGIC := '0'; 
+    clk : IN STD_LOGIC := '0';  
     rst : IN STD_LOGIC := '1'; --asynchronous, active LOW
     read_enable: IN STD_LOGIC_VECTOR(2 downto 0) := "000"; --control signal used to enable read of Nnumber
     addr_in: IN STD_LOGIC_VECTOR((LENGTH_ADDR_BITS-1) downto 0) := NNUM_START_ADDR;
@@ -47,7 +47,7 @@ end Nnum_Memory;
 
 architecture nnum_ach of Nnum_Memory is
 
-signal rom_words: nnum := nnum_readfile("nnum.mem");
+signal rom_words: nnum := nnum_readfile("C:/Users/Dajr/Documents/AHD_Project/NYU-6463-RV321/NYU-6463-RV321.srcs/sources_1/imports/NYU-6463-RV321 Processor/nnum.mem");
 signal addr_word: std_logic_vector(LENGTH_ADDR_BITS-1 downto 0) := x"00000000";
 signal masked_addr: std_logic_vector(LENGTH_ADDR_BITS-1 downto 0);
 
@@ -72,6 +72,10 @@ process(rst,clk) begin
                 data_out <= (others => '0');
             
             end if;
+            
+        else
+            data_out <= (others => '0');
+            
         end if;
     end if;
 end process;

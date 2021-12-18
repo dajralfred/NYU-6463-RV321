@@ -69,7 +69,9 @@ entity Control_Unit is
     
     compare: in std_logic := '0'; --comparison result from BC block
     
-    opc_out: out std_logic_vector(9 downto 0) -- (funct3 & opcode) output needed for imm and data extension
+    opc_out: out std_logic_vector(9 downto 0); -- (funct3 & opcode) output needed for imm and data extension
+    
+    state_out : out StateType := ST_4 --to regfile
   );
 end Control_Unit; 
 
@@ -78,7 +80,7 @@ architecture cu_ach of Control_Unit is
 signal opc: opcode;
 signal funct7: std_logic_vector(6 downto 0);
 signal funct3: std_logic_vector(2 downto 0);
-TYPE StateType IS (ST_1, ST_2, ST_3, ST_4, ST_STOP);
+
 SIGNAL state : StateType := ST_4;
 signal stop_flag : std_logic := '0';
 signal opkey: std_logic_vector(16 downto 0);
@@ -138,8 +140,8 @@ with prekey select rd_input <= --rd_input assignment
     '0' when "0001101111" | "0001100111",
     '1' when others;
     
-with prekey select use_rs1 <= --use_rs1 assignment ***should use opc instead
-    '0' when "0000010111" | "0001101111" | (funct3 & "1100011"),
+with opc select use_rs1 <= --use_rs1 assignment ***should use opc instead
+    '0' when "0010111" | "1101111" | "1100011",
     '1' when others; 
     
 with opc select use_rs2 <= --use_rs2 assignment
@@ -167,7 +169,7 @@ with opc select use_alu <= --use_alu assignment
     '1' when others;
 
 with (compare&opc) select use_next_addr <= --use_next_addr assignment
-    '0' when "11100011" | (compare & "1101111") | (compare & "1100111"),
+    '0' when "11100011" | "01101111" | "11101111" | "01100111" | "11100111",
     '1' when others;
 
 process(rst,opc) begin--stop_flag process **********
@@ -213,13 +215,14 @@ PROCESS(rst, clk) BEGIN --4 clk cycle FSM
     END IF;
 END PROCESS;
 
+state_out <= state;
 
 --***********************************************************************************************--
 
-process(rst,state) begin --advance_counter
+process(rst,clk) begin --advance_counter
     if(rst = '0') then
         advance_counter <= '0';
-    elsif(state'event) then
+    elsif(falling_edge(clk)) then
         if(state=ST_3) then
             advance_counter <= '1';
         else
@@ -228,10 +231,10 @@ process(rst,state) begin --advance_counter
     end if;
 end process;
 
-process(rst,state) begin --read_instr
+process(rst,clk) begin --read_instr
     if(rst='0') then
         read_instr <= '1';
-    elsif(state'event) then
+    elsif(falling_edge(clk)) then
         if(state=ST_4) then
             read_instr <= '1';
         else
@@ -240,10 +243,10 @@ process(rst,state) begin --read_instr
     end if;
 end process;
 
-process(rst,state) begin --REG_WE
+process(rst,clk) begin --REG_WE
     if(rst='0') then
         REG_WE <= '0';
-    elsif(state'event) then
+    elsif(falling_edge(clk)) then
         if(state=ST_1) then
             if(opc = U_TYPE_AUIPC or opc = UJ_TYPE or opc = I_TYPE_JALR) then
                 REG_WE <= '1';
@@ -271,10 +274,10 @@ process(rst,state) begin --REG_WE
     end if;
 end process;
 
-process(rst,state) begin --MEM_WE
+process(rst,clk) begin --MEM_WE
     if(rst='0') then
         MEM_WE <= "000";
-    elsif(state'event) then
+    elsif(falling_edge(clk)) then
         if(state=ST_2) then
             if(prekey = ("000"&S_TYPE)) then
                 MEM_WE <= "001";            
@@ -285,17 +288,17 @@ process(rst,state) begin --MEM_WE
             else
                 MEM_WE <= "000";
             end if;
-   
+    
         else
             MEM_WE <= "000";
         end if;
     end if;
 end process;
 
-process(rst,state) begin --MEM_RE
+process(rst,clk) begin --MEM_RE
     if(rst='0') then
         MEM_RE <= "000";
-    elsif(state'event) then
+    elsif(falling_edge(clk)) then
         if(state=ST_2) then
             if(prekey = ("000"&I_TYPE_LOAD) or prekey = ("100"&I_TYPE_LOAD)) then
                 MEM_RE <= "001";            
@@ -306,7 +309,16 @@ process(rst,state) begin --MEM_RE
             else
                 MEM_RE <= "000";
             end if;
-        
+        elsif(state=ST_3) then
+            if(prekey = ("000"&I_TYPE_LOAD) or prekey = ("100"&I_TYPE_LOAD)) then
+                MEM_RE <= "001";            
+            elsif(prekey = ("001"&I_TYPE_LOAD) or prekey = ("101"&I_TYPE_LOAD)) then
+                MEM_RE <= "011";
+            elsif(prekey = ("010"&I_TYPE_LOAD)) then
+                MEM_RE <= "111";
+            else
+                MEM_RE <= "000";
+            end if;
         else
             MEM_RE <= "000";
         end if;
