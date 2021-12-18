@@ -9,9 +9,9 @@ Implementation of a subset of the open source RISCV architecture on an FPGA to c
   - Shubham Shandilya:  <b>ss15590</b><br>
 
 ## Instructions to "run" the Processor:
-- Version 4 is the latest version.
+- Version 6 is the latest version.
 - Unzip the Version of choice and open the project contained inside in Vivado
-- Version 2, 3 and 4 are synthesizable while only V3 and V4 are robust to C-derived programs
+- Version 2 to 6 are synthesizable while only V3 to V6 are robust to C-derived programs
 - Copy the contents of the .mem program you wish to run into the main.mem file linked to in the program
 - Be careful of choosing the correct absolute address for the main.mem and nnum.mem files
 - To run on FPGA Dev Board, simply synthesize Version 3 of the processor, implement it, 
