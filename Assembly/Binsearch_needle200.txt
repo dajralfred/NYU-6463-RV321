@@ -1,0 +1,80 @@
+/*
+ * Standalone assembly language program for NYU-6463-RV32I processor
+ * The label 'reset handler' will be called upon startup.
+ */
+.global reset_handler
+.type reset_handler,@function
+
+reset_handler:
+#Program to perform Binary Search with given arguments
+# a0 = int arr[]
+# a1 = int needle
+# a2 = int size
+# t0 = mid
+# t1 = left
+# t2 = right
+
+#Store [2,3,5,8,18,29,31,45,56,94,200] into the Data Memory
+
+	addi a0,x0,2
+	sw a0,0(x0)
+	addi a0,x0,3
+	sw a0,4(x0)
+	addi a0,x0,5
+	sw a0,8(x0)
+	addi a0,x0,8
+	sw a0,12(x0)
+	addi a0,x0,18
+	sw a0,16(x0)
+	addi a0,x0,29
+	sw a0,20(x0)
+	addi a0,x0,31
+	sw a0,24(x0)
+	addi a0,x0,45
+	sw a0,28(x0)
+	addi a0,x0,56
+	sw a0,32(x0)
+	addi a0,x0,94
+	sw a0,36(x0)
+	addi a0,x0,200
+	sw a0,40(x0)
+
+#Set a0 register as address of first element of arr[]
+	addi a0,x0,0
+
+#value of needle : element to be searched
+	addi a1,x0,31
+
+#Size of the arr[]
+	addi a2,x0,10
+
+#Start the Binary Search
+    addi    t1, zero, 0  	 # left = 0
+    addi    t2, a2, -1   	 # right = size - 1
+LOOP1:
+	# while loop
+    blt     t2, t1, HALT     # right < left , break
+    add     t0, t1, t2   	 # mid = left + right
+    srai    t0, t0, 1        # mid = (left + right) / 2
+
+    # Get the element at the midpoint
+    slli    t4, t0, 2    	 # Scale the midpoint by 4
+    add     t4, a0, t4   	 # Get the memory address of arr[mid]
+    lw      t4, 0(t4)    	 # Dereference arr[mid]
+
+    # See if the needle (a1) > arr[mid] (t3)
+    bge     t4, a1, LOOP2    # if needle <= t4, we need to check the next condition
+    # If we get here, then the needle is > arr[mid]
+    addi    t1, t0, 1    	 # left = mid + 1
+    jal     zero, LOOP1
+LOOP2:
+    beq     a1, t4, FOUND    # skip if needle === arr[mid]
+    # If we get here, then needle < arr[mid]
+    addi    t2, t0, -1   	 # right = mid - 1
+    jal     zero, LOOP1
+FOUND:
+    # If we get here, then needle == arr[mid]
+    slli    sp, t0, 2    	 # Scale the midpoint by 4
+    lw ra, 0(sp)
+HALT:
+    ecall
